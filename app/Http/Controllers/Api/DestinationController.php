@@ -16,6 +16,34 @@ class DestinationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    /**
+     * @OA\Post(
+     *     path="/api/itineraries/{itinerary}/destinations",
+     *     summary="Add a destination to an itinerary",
+     *     tags={"Destinations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="itinerary",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "address"},
+     *             @OA\Property(property="title", type="string", example="Sahara Desert"),
+     *             @OA\Property(property="address", type="string", example="Merzouga"),
+     *             @OA\Property(property="places", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="activities", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="dishes", type="array", @OA\Items(type="string"))
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Destination added"),
+     *     @OA\Response(response=403, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(CreateDestinationRequest $request, Itenerary $itinerary)
     {
         $destination = DB::transaction(function () use ($request, $itinerary) {
@@ -41,6 +69,33 @@ class DestinationController extends Controller
 
     /**
      * Update the specified resource in storage.
+     */
+    /**
+     * @OA\Put(
+     *     path="/api/destinations/{destination}",
+     *     summary="Update a destination",
+     *     tags={"Destinations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="destination",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string"),
+     *             @OA\Property(property="address", type="string"),
+     *             @OA\Property(property="places", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="activities", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="dishes", type="array", @OA\Items(type="string"))
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Destination updated"),
+     *     @OA\Response(response=403, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(UpdateDestinationRequest $request, Destination $destination)
     {
@@ -74,6 +129,22 @@ class DestinationController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     */
+    /**
+     * @OA\Delete(
+     *     path="/api/destinations/{destination}",
+     *     summary="Delete a destination",
+     *     tags={"Destinations"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="destination",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Destination deleted"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
      */
     public function destroy(Destination $destination)
     {

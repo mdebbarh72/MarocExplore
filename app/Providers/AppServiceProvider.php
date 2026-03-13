@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        error_reporting(E_ALL & ~E_DEPRECATED);
         Gate::define('view-user', [UserPolicy::class, 'view']);
         Gate::define('create-user', [UserPolicy::class, 'create']);
         Gate::define('update-user', [UserPolicy::class, 'update']);

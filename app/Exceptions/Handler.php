@@ -8,7 +8,7 @@ use Throwable;
 
 class Handler extends ExceptionHandler
 {
-    // You can keep these empty or default
+    
     protected $levels = [];
     protected $dontReport = [];
     protected $dontFlash = ['current_password', 'password', 'password_confirmation'];

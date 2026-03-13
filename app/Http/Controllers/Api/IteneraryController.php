@@ -21,17 +21,52 @@ class IteneraryController extends Controller
     /**
      * List itineraries
      */
+    /**
+     * @OA\Get(
+     *     path="/api/itineraries",
+     *     summary="List all itineraries",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by itinerary title",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="destination",
+     *         in="query",
+     *         description="Search by destination name",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="category",
+     *         in="query",
+     *         description="Filter by category ID",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function index(\Illuminate\Http\Request $request)
     {
         $query = Itenerary::query()->with('destinations');
 
         if ($request->has('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $query->where('title', 'ilike', '%' . $request->search . '%');
         }
 
         if ($request->has('destination')) {
             $query->whereHas('destinations', function ($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->destination . '%');
+                $q->where('title', 'ilike', '%' . $request->destination . '%');
             });
         }
 
@@ -44,6 +79,40 @@ class IteneraryController extends Controller
 
     /**
      * Create itinerary with nested data
+     */
+    /**
+     * @OA\Post(
+     *     path="/api/itineraries",
+     *     summary="Create a new itinerary",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"title", "category", "image", "destinations"},
+     *                 @OA\Property(property="title", type="string", example="Summer Trip"),
+     *                 @OA\Property(property="category", type="integer", example=1),
+     *                 @OA\Property(property="image", type="string", format="binary"),
+     *                 @OA\Property(
+     *                     property="destinations",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="title", type="string"),
+     *                         @OA\Property(property="address", type="string"),
+     *                         @OA\Property(property="places", type="array", @OA\Items(type="string")),
+     *                         @OA\Property(property="activities", type="array", @OA\Items(type="string")),
+     *                         @OA\Property(property="dishes", type="array", @OA\Items(type="string"))
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Itinerary created"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(CreateIteneraryRequest $request)
     {
@@ -100,6 +169,22 @@ class IteneraryController extends Controller
     /**
      * Show a single itinerary
      */
+    /**
+     * @OA\Get(
+     *     path="/api/itineraries/{itinerary}",
+     *     summary="Get a single itinerary details",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="itinerary",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=404, description="Itinerary not found")
+     * )
+     */
     public function show(Itenerary $itinerary)
     {
         return $itinerary->load(
@@ -110,6 +195,50 @@ class IteneraryController extends Controller
     }
 
 
+    /**
+     * @OA\Post(
+     *     path="/api/itineraries/{itinerary}",
+     *     summary="Update an itinerary",
+     *     description="Uses POST with _method=PUT for multipart/form-data compatibility",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="itinerary",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="_method", type="string", example="PUT"),
+     *                 @OA\Property(property="title", type="string"),
+     *                 @OA\Property(property="category", type="integer"),
+     *                 @OA\Property(property="status", type="string", enum={"pending", "visiting", "visited", "canceled"}),
+     *                 @OA\Property(property="image", type="string", format="binary"),
+     *                 @OA\Property(property="removed_activities", type="array", @OA\Items(type="integer")),
+     *                 @OA\Property(property="removed_places", type="array", @OA\Items(type="integer")),
+     *                 @OA\Property(property="removed_dishes", type="array", @OA\Items(type="integer")),
+     *                 @OA\Property(property="removed_destinations", type="array", @OA\Items(type="integer")),
+     *                 @OA\Property(
+     *                     property="destinations",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="title", type="string"),
+     *                         @OA\Property(property="address", type="string")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Itinerary updated"),
+     *     @OA\Response(response=403, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function update(UpdateIteneraryRequest $request, Itenerary $itinerary)
     {
         $itinerary = DB::transaction(function () use ($request, $itinerary) {
@@ -186,6 +315,22 @@ class IteneraryController extends Controller
     /**
      * Delete itinerary
      */
+    /**
+     * @OA\Delete(
+     *     path="/api/itineraries/{itinerary}",
+     *     summary="Delete an itinerary",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="itinerary",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Itinerary deleted"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
+     */
     public function destroy(Itenerary $itinerary)
     {
         $authorisation = Gate::inspect('delete-itenerary', $itinerary);
@@ -204,6 +349,16 @@ class IteneraryController extends Controller
     /**
      * Get iteneraries of the authenticated user
      */
+    /**
+     * @OA\Get(
+     *     path="/api/itineraries/my",
+     *     summary="Get itineraries of the authenticated user",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function userItineraries(\Illuminate\Http\Request $request)
     {
         return $request->user()->iteneraries()->with('destinations')->paginate(10);
@@ -211,6 +366,22 @@ class IteneraryController extends Controller
 
     /**
      * Copy an itinerary
+     */
+    /**
+     * @OA\Post(
+     *     path="/api/itineraries/{itinerary}/copy",
+     *     summary="Copy an itinerary",
+     *     tags={"Itineraries"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="itinerary",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=201, description="Itinerary copied successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function copy(Itenerary $itinerary)
     {
